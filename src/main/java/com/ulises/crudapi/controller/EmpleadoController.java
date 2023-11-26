@@ -3,7 +3,6 @@ package com.ulises.crudapi.controller;
 import com.ulises.crudapi.entity.Empleado;
 import com.ulises.crudapi.model.EmpleadoRequest;
 import com.ulises.crudapi.service.EmpleadoService;
-import jakarta.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;

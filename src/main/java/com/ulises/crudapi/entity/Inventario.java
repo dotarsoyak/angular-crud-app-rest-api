@@ -1,0 +1,39 @@
+package com.ulises.crudapi.entity;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import lombok.*;
+
+@Entity
+@ToString
+@AllArgsConstructor
+@Getter
+@Setter
+public class Inventario {
+    @Id
+    @Column(length = 10, nullable = false)
+    private String sku;
+    @Column(length = 100, nullable = false)
+    private String nombre;
+    @Column(nullable = false)
+    private int cantidad;
+
+    public Inventario(){}
+
+    public Inventario(String sku, int cantidad){
+        this.setSku(sku);
+        this.setCantidad(cantidad);
+    }
+
+    public void disminuirCantidad(int cantidad){
+        int cantidadActualizada = this.getCantidad() - cantidad;
+        this.setCantidad(cantidadActualizada);
+    }
+
+    public void aumentarCantidad(int cantidad){
+        int cantidadActualizada = this.getCantidad() + cantidad;
+        this.setCantidad(cantidadActualizada);
+    }
+
+}

@@ -11,13 +11,12 @@ import static jakarta.persistence.GenerationType.IDENTITY;
 public class Empleado{
     @Id
     @GeneratedValue(strategy = IDENTITY)
-    @Column(name="IdEmpleado")
     private Long idEmpleado;
-    @Column(name="Nombre")
+    @Column(length = 100, nullable = false)
     private String nombre;
-    @Column(name="Apellido")
+    @Column(length = 100, nullable = true)
     private String apellido;
-    @Column(name="Puesto")
+    @Column(length = 100, nullable = false)
     private String puesto;
 
     public Empleado(){}
