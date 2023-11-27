@@ -6,5 +6,6 @@ import com.ulises.crudapi.entity.PolizaDetalle;
 import java.util.Optional;
 
 public interface InventarioService {
-    Optional<Inventario> updateInventory(PolizaDetalle polizaDetalle);
+    void incrementarInventario(PolizaDetalle polizaDetalle);
+    void disminuirInventario(PolizaDetalle polizaDetalle);
 }

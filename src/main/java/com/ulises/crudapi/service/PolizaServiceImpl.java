@@ -3,14 +3,18 @@ package com.ulises.crudapi.service;
 import com.ulises.crudapi.entity.Poliza;
 import com.ulises.crudapi.entity.PolizaDetalle;
 import com.ulises.crudapi.entity.PolizaDetallePk;
+import com.ulises.crudapi.enums.PolizaEnum;
+import com.ulises.crudapi.model.PolizaDetalleRequest;
 import com.ulises.crudapi.model.PolizaRequest;
+import com.ulises.crudapi.repository.PolizaDetalleRepository;
 import com.ulises.crudapi.repository.PolizaRepository;
 import jakarta.persistence.EntityManager;
+import jakarta.persistence.ParameterMode;
+import jakarta.persistence.StoredProcedureQuery;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import javax.swing.text.html.parser.Entity;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Date;
@@ -18,7 +22,6 @@ import java.util.List;
 
 @Service
 public class PolizaServiceImpl implements PolizaService {
-    private static final int CANCELADA = 1;
     @Autowired
     private EntityManager em;
 
@@ -32,88 +35,92 @@ public class PolizaServiceImpl implements PolizaService {
     @Transactional
     public Poliza save(PolizaRequest polizaRequest) {
         Poliza poliza = PolizaRequest.map(polizaRequest);
-        poliza.setFecha(Date.from(Instant.now()));
-
-        var polizaDetalle = new ArrayList<PolizaDetalle>(poliza.getSkus());
-
-        poliza.setSkus(null);
 
         em.persist(poliza);
         em.merge(poliza);
-
-        List<PolizaDetalle> detalles = new ArrayList<>();
+        poliza.setSkus(new ArrayList<PolizaDetalle>());
 
         polizaRequest.getDetalle().forEach(
                 (polizaDetalleRequest) -> {
                     polizaDetalleRequest.setIdPoliza(poliza.getIdPoliza());
                     var det = new PolizaDetalle(polizaDetalleRequest);
-                    detalles.add(det);
+                    //det.setPoliza(poliza);
                     em.persist(det);
-
-                    //TODO: agregar flag para aumentar o disminuir el inventario
-                    //aumentamos o disminuimos el inventario
-                    inventarioService.updateInventory(det);
+                    inventarioService.disminuirInventario(det);
                 }
         );
 
+        em.persist(poliza);
         em.flush();
+        em.close();
 
-        //poliza.setSkus(detalles);
-
-        return this.polizaRepository.save(poliza);
-
+        return poliza;
     }
 
     @Override
     @Transactional
     public void actualizarPoliza(PolizaRequest polizaRequest) {
-        var p = PolizaRequest.map(polizaRequest);
+        var mappedPoliza = PolizaRequest.map(polizaRequest);
         var polizaFromRepository = this.polizaRepository.findById(polizaRequest.getIdPoliza());
-
-        /*
-        * Actualizar empleadoGenero, fecha, cancelada, fechaCancelacion, skus
-        * */
-
         var polizaToUpdate = polizaFromRepository.get();
 
-        actualizarPolizaMaestro(p, polizaToUpdate);
+        //setear encabezados
+        actualizarPolizaMaestro(mappedPoliza, polizaToUpdate);
 
-        em.persist(polizaToUpdate);
-        em.merge(polizaToUpdate);
+        //generar lista actualizada para grabar en el detalle de la poliza
+        var detalleActualizado = getPolizaDetallesActualizada(polizaRequest);
 
-        //eliminar los actuales skus
-        polizaFromRepository.get().getSkus().forEach(
-                (polizaDetalle) -> {
-                    em.remove(polizaDetalle);
-                    em.merge(polizaDetalle);
+        //eliminar detalles
+        eliminarDetalles(polizaRequest);
+
+        polizaToUpdate.setSkus(new ArrayList<PolizaDetalle>());
+
+        //insertar los skus actualizados
+        detalleActualizado.forEach(
+            (PolizaDetalle det) -> {
+                //det.setPoliza(polizaToUpdate);
+                em.persist(det);
+
+                if(polizaToUpdate.getCancelada() == PolizaEnum.CANCELADA.ordinal()){
+                    inventarioService.incrementarInventario(det);
                 }
-        );
-
-        //insertar los nuevos skus
-
-        polizaToUpdate.getSkus().forEach(
-            (polizaDetalle) -> {
-                em.persist(polizaDetalle);
             }
         );
 
+        em.persist(polizaToUpdate);
         em.flush();
+        em.close();
+    }
 
-        polizaToUpdate.setSkus(p.getSkus());
+    private static List<PolizaDetalle> getPolizaDetallesActualizada(PolizaRequest polizaRequest) {
+        List<PolizaDetalle> detalleActualizado = new ArrayList<>(
+                polizaRequest.getDetalle()
+                        .stream()
+                        .map(
+                        (PolizaDetalleRequest det) -> {
+                            return new PolizaDetalle(det);
+                        }).toList()
+        );
+        return detalleActualizado;
+    }
+
+    private void eliminarDetalles(PolizaRequest polizaRequest) {
+        StoredProcedureQuery query = em
+                .createStoredProcedureQuery("deletePolizaDetalleByIdPoliza")
+                .registerStoredProcedureParameter(1, Long.class,
+                        ParameterMode.IN)
+                .setParameter(1, polizaRequest.getIdPoliza());
+
+        query.execute();
 
     }
 
-    private static void actualizarPolizaMaestro(Poliza p, Poliza polizaToUpdate) {
-        polizaToUpdate.setEmpleadoGenero(p.getEmpleadoGenero());
+    private static void actualizarPolizaMaestro(Poliza mappedPoliza, Poliza polizaToUpdate) {
+        polizaToUpdate.setEmpleadoGenero(mappedPoliza.getEmpleadoGenero());
+        polizaToUpdate.setCancelada(mappedPoliza.getCancelada());
 
-        if(p.getFecha() != null){
-            polizaToUpdate.setFecha(p.getFecha());
-        }
-
-        polizaToUpdate.setCancelada(p.getCancelada());
-
-        if(p.getCancelada() == CANCELADA) {
-            polizaToUpdate.setFechaCancelacion(p.getFechaCancelacion());
+        if(mappedPoliza.getCancelada() == PolizaEnum.CANCELADA.ordinal()) {
+            polizaToUpdate.setFechaCancelacion(mappedPoliza.getFechaCancelacion());
         }
     }
 

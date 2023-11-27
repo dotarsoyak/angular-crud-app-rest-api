@@ -20,9 +20,10 @@ public class PolizaDetalle {
     private int cantidad;
 
     @ManyToOne(cascade = CascadeType.PERSIST)
-    @JoinColumn(name = "poliza_id_poliza")
+    //@JoinColumn(name = "poliza_id_poliza")
     @JsonIgnore
     private Poliza poliza;
+
     public PolizaDetalle(){}
 
     public PolizaDetalle(PolizaDetalleRequest detalle){
@@ -47,5 +48,13 @@ public class PolizaDetalle {
 
     public void setCantidad(int cantidad) {
         this.cantidad = cantidad;
+    }
+
+    public Poliza getPoliza() {
+        return poliza;
+    }
+
+    public void setPoliza(Poliza poliza) {
+        this.poliza = poliza;
     }
 }

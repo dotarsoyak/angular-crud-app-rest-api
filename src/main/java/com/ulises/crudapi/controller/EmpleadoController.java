@@ -14,7 +14,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 import java.net.URI;
 
 @RestController
-@RequestMapping(path = "/empleado/api/v1")
+@RequestMapping(path = "/api/v1/empleado")
 public class EmpleadoController {
     private static final Logger LOG = LoggerFactory.getLogger(EmpleadoController.class);
 

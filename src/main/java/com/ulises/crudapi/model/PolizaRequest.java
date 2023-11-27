@@ -2,7 +2,9 @@ package com.ulises.crudapi.model;
 
 import com.ulises.crudapi.entity.Poliza;
 import com.ulises.crudapi.entity.PolizaDetalle;
+import com.ulises.crudapi.enums.PolizaEnum;
 
+import java.time.LocalDate;
 import java.util.Date;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -21,24 +23,15 @@ public class PolizaRequest {
         Poliza poliza = Poliza.build(
                 polizaRequest.getIdPoliza(),
                 polizaRequest.empleadoGenero,
-                null, polizaRequest.getCancelada(), polizaRequest.getFechaCancelacion()
-                ,mapPolizaDetalle(polizaRequest)
+                new Date( LocalDate.now().getYear()
+                        , LocalDate.now().getMonthValue()
+                        , LocalDate.now().getDayOfMonth()) //fecha
+                ,0
+                , polizaRequest.getFechaCancelacion()
+                ,null //detalles de poliza
         );
 
         return poliza;
-    }
-
-    private static List<PolizaDetalle> mapPolizaDetalle(PolizaRequest polizaRequest){
-        List<PolizaDetalle> detalles = new ArrayList<>();
-
-        polizaRequest.getDetalle().forEach(
-                (polizaDetalleRequest) -> {
-                    var det = new PolizaDetalle(polizaDetalleRequest);
-                    detalles.add(det);
-                }
-        );
-
-        return detalles;
     }
 
     public String getEmpleadoGenero() {
@@ -92,8 +85,8 @@ public class PolizaRequest {
         return fechaCancelacion;
     }
 
-    public void setFechaCancelacion(Date fechaCancelacion) {
-        this.fechaCancelacion = fechaCancelacion;
+    public void setFechaCancelacion() {
+        this.fechaCancelacion = Date.from(Instant.now());
     }
 
 }

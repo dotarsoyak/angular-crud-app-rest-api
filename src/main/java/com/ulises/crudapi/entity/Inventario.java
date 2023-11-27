@@ -27,13 +27,11 @@ public class Inventario {
     }
 
     public void disminuirCantidad(int cantidad){
-        int cantidadActualizada = this.getCantidad() - cantidad;
-        this.setCantidad(cantidadActualizada);
+        this.setCantidad(this.getCantidad() - cantidad);
     }
 
     public void aumentarCantidad(int cantidad){
-        int cantidadActualizada = this.getCantidad() + cantidad;
-        this.setCantidad(cantidadActualizada);
+        this.setCantidad(this.getCantidad() + cantidad);
     }
 
 }

@@ -23,13 +23,12 @@ public class Poliza {
     private Long idPoliza;
     @Column(length = 100, nullable = false)
     private String empleadoGenero;
-    @Column(name="fecha", columnDefinition = "date DEFAULT now()")
+    //@Column(name="fecha", columnDefinition = "date DEFAULT now()")
     private Date fecha;
     private int cancelada;
-    @Column(name="fecha_cancelacion", columnDefinition = "date")
     private Date fechaCancelacion;
 
-    @OneToMany(mappedBy = "poliza", cascade = CascadeType.PERSIST, fetch = FetchType.EAGER)
+    @OneToMany(mappedBy = "poliza", cascade = {CascadeType.PERSIST, CascadeType.REMOVE}, fetch = FetchType.EAGER)
     private List<PolizaDetalle> skus = new ArrayList<>();
 
     public Poliza(){}

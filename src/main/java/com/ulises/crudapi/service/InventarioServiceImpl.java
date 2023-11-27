@@ -14,7 +14,7 @@ public class InventarioServiceImpl implements InventarioService {
     private InventarioRepository inventarioRepository;
 
     @Override
-    public Optional<Inventario> updateInventory(PolizaDetalle polizaDetalle) {
+    public void incrementarInventario(PolizaDetalle polizaDetalle) {
         var singleSku = getInventario(polizaDetalle);
         var sku = this.inventarioRepository.findById(singleSku.getSku());
 
@@ -24,8 +24,19 @@ public class InventarioServiceImpl implements InventarioService {
             selectedSku.disminuirCantidad(singleSku.getCantidad());
             this.inventarioRepository.save(selectedSku);
         }
+    }
 
-        return Optional.ofNullable(new Inventario());
+    @Override
+    public void disminuirInventario(PolizaDetalle polizaDetalle) {
+        var singleSku = getInventario(polizaDetalle);
+        var sku = this.inventarioRepository.findById(singleSku.getSku());
+
+        if(sku.isPresent()){
+            //actualizamos
+            var selectedSku = sku.get();
+            selectedSku.disminuirCantidad(singleSku.getCantidad());
+            this.inventarioRepository.save(selectedSku);
+        }
     }
 
     private static Inventario getInventario(PolizaDetalle polizaDetalle){

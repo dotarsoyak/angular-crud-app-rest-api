@@ -21,7 +21,7 @@ public class CrudApiApplication implements CommandLineRunner {
 
 	@Override
 	public void run(String... args) throws Exception {
-		/*String insertInventario = """
+	/*String insertInventario = """
 				INSERT INTO inventario(sku,nombre,cantidad) VALUES('101285', 'Bicicleta Bimex', 5);
 				INSERT INTO inventario(sku,nombre,cantidad) VALUES('101286', 'Bicicleta Bimex', 3);
 				""";

@@ -10,6 +10,13 @@ public class PolizaDetallePk implements Serializable {
     private Long idPoliza;
     private String sku;
 
+    public PolizaDetallePk(){}
+
+    public PolizaDetallePk(Long idPoliza, String sku) {
+        this.idPoliza = idPoliza;
+        this.sku = sku;
+    }
+
     public void setIdPoliza(Long idPoliza) {
         this.idPoliza = idPoliza;
     }
