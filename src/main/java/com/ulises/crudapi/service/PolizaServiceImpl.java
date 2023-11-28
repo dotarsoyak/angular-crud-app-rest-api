@@ -3,16 +3,24 @@ package com.ulises.crudapi.service;
 import com.ulises.crudapi.entity.Poliza;
 import com.ulises.crudapi.entity.PolizaDetalle;
 import com.ulises.crudapi.enums.PolizaEnum;
+import com.ulises.crudapi.model.DetalleArticuloModel;
 import com.ulises.crudapi.model.EmpleadoActualizaRequest;
 import com.ulises.crudapi.model.PolizaRequest;
+import com.ulises.crudapi.repository.EmpleadoRepository;
 import com.ulises.crudapi.repository.PolizaRepository;
+import com.ulises.crudapi.response.ConsultarResponse;
+import com.ulises.crudapi.response.data.DetalleArticuloResponseData;
+import com.ulises.crudapi.response.data.EmpleadoResponseData;
+import com.ulises.crudapi.response.data.PolizaResponseData;
 import jakarta.persistence.EntityManager;
-import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Map;
 
 @Service
 public class PolizaServiceImpl implements PolizaService {
@@ -20,10 +28,73 @@ public class PolizaServiceImpl implements PolizaService {
     private EntityManager em;
 
     @Autowired
+    private JdbcTemplate jdbcTemplate;
+
+    @Autowired
     private InventarioServiceImpl inventarioService;
 
     @Autowired
     private PolizaRepository polizaRepository;
+
+    @Autowired
+    private EmpleadoRepository empleadoRepository;
+
+    @Override
+    public Map<String, Object> consultarPolizaById(Long id) {
+        //------------
+        //obtener poliza
+        var poliza = this.polizaRepository.findById(id).get();
+
+        //obtener Empleado
+        var empleado = this.empleadoRepository.findById(poliza.getIdEmpleado()).get();
+
+        //polizaResponseData
+        var polizaResponseData = new PolizaResponseData();
+        polizaResponseData.setIdPoliza(id);
+        polizaResponseData.setCantidad(poliza.getSkus().stream().count());
+
+        //empleadoData
+        var empleadoResponseData = new EmpleadoResponseData();
+        empleadoResponseData.setNombre(empleado.getNombre().trim());
+        empleadoResponseData.setApellido(empleado.getApellido().trim());
+
+        //detalleArticuloResponseData
+        var detalleArticuloResponseData = new DetalleArticuloResponseData();
+        //consultar los skus
+        //TODO: Refactorizar esta parte para consumirla obtener una lista como resultado
+        //TODO: parametrizar esta consulta
+        var detallesSkus = jdbcTemplate
+                        .queryForList("select sku, nombre from obtenerDetalleArticulosPorIdPoliza("+id+")");
+
+        //TODO: Asignar al DetalleArticuloResponseList, la responsabilidad de mapear este codigo.
+        //o en su lugar, crear un helper de DetalleArticuloResponseList para que haga el mapeo
+        var detalleArticuloList = new ArrayList<DetalleArticuloModel>();
+                detallesSkus.forEach(
+                (s) -> {
+                    detalleArticuloList.add(
+                            DetalleArticuloModel.build((String)s.get("sku").toString().trim()
+                            ,(String)s.get("nombre").toString().trim()));
+                }
+        );
+
+        var detalleArticuloResponseDataList =
+                detalleArticuloList
+                        .stream()
+                        .map((DetalleArticuloModel det) -> {
+                                  return DetalleArticuloResponseData.build(det.getSku(), det.getNombre());
+                                }).toList();
+
+
+        //crear objeto ConsultaResponse
+        var consultaResponse =
+                ConsultarResponse.build(
+                        polizaResponseData
+                        ,empleadoResponseData
+                        ,detalleArticuloResponseDataList
+                );
+
+        return consultaResponse;
+    }
 
     @Override
     public void cancelarPoliza(Long id){
@@ -33,7 +104,10 @@ public class PolizaServiceImpl implements PolizaService {
         var polizaToDelete = poliza.get();
 
         polizaToDelete.setCancelada(PolizaEnum.CANCELADA.ordinal());
-        polizaToDelete.setFechaCancelacion();
+        polizaToDelete.setFechaCancelacion(
+                LocalDate.of(LocalDate.now().getYear()
+                , LocalDate.now().getMonthValue()
+                , LocalDate.now().getDayOfMonth()));
 
         //grabar
         this.polizaRepository.save(polizaToDelete);
@@ -61,7 +135,7 @@ public class PolizaServiceImpl implements PolizaService {
                 (polizaDetalleRequest) -> {
                     polizaDetalleRequest.setIdPoliza(poliza.getIdPoliza());
                     var det = new PolizaDetalle(polizaDetalleRequest);
-                    //det.setPoliza(poliza);
+                    det.setPoliza(poliza);
                     em.persist(det);
                     inventarioService.disminuirInventario(det);
                 }

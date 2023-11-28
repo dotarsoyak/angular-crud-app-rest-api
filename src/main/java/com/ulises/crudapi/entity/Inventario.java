@@ -12,9 +12,9 @@ import lombok.*;
 @Setter
 public class Inventario {
     @Id
-    @Column(length = 10, nullable = false)
+    @Column(length = 10, nullable = false, columnDefinition = "CHAR(10)")
     private String sku;
-    @Column(length = 100, nullable = false)
+    @Column(length = 100, nullable = false, columnDefinition = "CHAR(100)")
     private String nombre;
     @Column(nullable = false)
     private int cantidad;

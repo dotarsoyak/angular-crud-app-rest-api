@@ -12,11 +12,11 @@ public class Empleado{
     @Id
     @GeneratedValue(strategy = IDENTITY)
     private Long idEmpleado;
-    @Column(length = 100, nullable = false)
+    @Column(length = 100, nullable = false, columnDefinition = "CHAR(100)")
     private String nombre;
-    @Column(length = 100, nullable = true)
+    @Column(length = 100, nullable = true, columnDefinition = "CHAR(100)")
     private String apellido;
-    @Column(length = 100, nullable = false)
+    @Column(length = 100, nullable = false, columnDefinition = "CHAR(100)")
     private String puesto;
 
     public Empleado(){}
