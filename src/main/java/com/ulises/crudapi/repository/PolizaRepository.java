@@ -9,4 +9,5 @@ import java.util.List;
 
 @Repository
 public interface PolizaRepository extends JpaRepository<Poliza, Long> {
+    void deleteById(Long id);
 }

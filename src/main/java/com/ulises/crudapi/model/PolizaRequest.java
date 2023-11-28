@@ -12,6 +12,7 @@ import java.util.List;
 
 public class PolizaRequest {
     private Long idPoliza;
+    private Long idEmpleado;
     private String empleadoGenero;
     private int cancelada;
     private Date fecha;
@@ -20,15 +21,9 @@ public class PolizaRequest {
     public PolizaRequest(){}
 
     public static Poliza map(PolizaRequest polizaRequest){
-        Poliza poliza = Poliza.build(
-                polizaRequest.getIdPoliza(),
-                polizaRequest.empleadoGenero,
-                new Date( LocalDate.now().getYear()
-                        , LocalDate.now().getMonthValue()
-                        , LocalDate.now().getDayOfMonth()) //fecha
-                ,0
-                , polizaRequest.getFechaCancelacion()
-                ,null //detalles de poliza
+        Poliza poliza = new Poliza(
+                polizaRequest.getIdEmpleado(),//idpoliza
+                polizaRequest.empleadoGenero //empleado genero
         );
 
         return poliza;
@@ -45,7 +40,13 @@ public class PolizaRequest {
     @Override
     public String toString() {
         return "PolizaRequest{" +
-                "empleadoGenero='" + empleadoGenero + '\'' +
+                "idPoliza=" + idPoliza +
+                ", idEmpleado=" + idEmpleado +
+                ", empleadoGenero='" + empleadoGenero + '\'' +
+                ", cancelada=" + cancelada +
+                ", fecha=" + fecha +
+                ", fechaCancelacion=" + fechaCancelacion +
+                ", detalle=" + detalle +
                 '}';
     }
 
@@ -89,4 +90,11 @@ public class PolizaRequest {
         this.fechaCancelacion = Date.from(Instant.now());
     }
 
+    public void setIdEmpleado(Long idEmpleado) {
+        this.idEmpleado = idEmpleado;
+    }
+
+    public Long getIdEmpleado() {
+        return idEmpleado;
+    }
 }
