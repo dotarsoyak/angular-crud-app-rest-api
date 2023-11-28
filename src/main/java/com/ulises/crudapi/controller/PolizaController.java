@@ -5,6 +5,7 @@ import com.ulises.crudapi.entity.Poliza;
 import com.ulises.crudapi.model.DetalleArticuloModel;
 import com.ulises.crudapi.model.EmpleadoActualizaRequest;
 import com.ulises.crudapi.model.PolizaRequest;
+import com.ulises.crudapi.repository.EmpleadoRepository;
 import com.ulises.crudapi.repository.PolizaDetalleRepository;
 import com.ulises.crudapi.repository.PolizaRepository;
 import com.ulises.crudapi.response.ConsultarResponse;
@@ -18,6 +19,7 @@ import jakarta.persistence.EntityManager;
 import jakarta.persistence.ParameterMode;
 import jakarta.persistence.Query;
 import jakarta.persistence.StoredProcedureQuery;
+import org.apache.coyote.Response;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,27 +42,32 @@ public class PolizaController {
 
     @Autowired
     private EntityManager em;
-
     @Autowired
     private JdbcTemplate jdbcTemplate;
-
     @Autowired
     private PolizaService polizaService;
     @Autowired
     private PolizaRepository polizaRepository;
+    @Autowired
+    private EmpleadoRepository empleadoRepository;
 
     @PostMapping("/add")
-    public ResponseEntity<Poliza> save(@RequestBody PolizaRequest polizaRequest
+    public ResponseEntity<Map<String, Object>> save(@RequestBody PolizaRequest polizaRequest
             , UriComponentsBuilder ucb) {
 
-        LOG.info("Objeto PolizaRequest: {}", polizaRequest);
-        var createdPoliza = this.polizaService.save(polizaRequest);
+        try{
+            LOG.info("Objeto PolizaRequest: {}", polizaRequest);
+            var grabadoResponse = this.polizaService.save(polizaRequest);
 
-        URI location = ucb.path("/poliza/add/{id}")
-                .buildAndExpand(createdPoliza.getIdPoliza())
-                .toUri();
+            URI location = ucb.path("/poliza/add/{id}")
+                    .buildAndExpand(polizaRequest.getIdPoliza())
+                    .toUri();
 
-        return ResponseEntity.created(location).build();
+            return ResponseEntity.ok(grabadoResponse);
+        }catch(Exception ex){
+            return ResponseEntity.ok(FailResponse.build("Ha ocurrido un error en los grabado de póliza."));
+        }
+
     }
 
     @GetMapping("/update/{idPoliza}/{idEmpleado}/{nombreEmpleado}")
@@ -118,6 +125,21 @@ public class PolizaController {
         }
     }
 
+    @GetMapping("/empleado/{idEmpleado}")
+    public ResponseEntity<Map<String ,Object>> getPolizaByIdEmpleado(@PathVariable("idEmpleado") Long idEmpleado){
+        try{
+            if(this.empleadoRepository.existsById(idEmpleado)){
+                var response = this.polizaService.consultarPolizaPorIdEmpleado(idEmpleado);
+
+                return ResponseEntity.ok(response);
+            }
+        }catch(Exception ex){
+            return ResponseEntity.ok(FailResponse.build("Ha ocurrido un error al consultar la póliza"));
+        }
+
+        return ResponseEntity.ok(FailResponse.build("Ha ocurrido un error al consultar la póliza"));
+    }
+
     @GetMapping("/hi")
     public void hello(){
         var detallesSkus =
@@ -125,31 +147,6 @@ public class PolizaController {
 
         System.out.println();
 
-        /*var p = new PolizaResponseData();
-        p.setIdPoliza(1L);
-        p.setCantidad(1L);
-
-        var poliza = p;
-
-        var emp = new EmpleadoResponseData();
-        emp.setNombre("Ulises");
-        emp.setApellido("Trujillo");
-
-        var art = new DetalleArticuloResponseData();
-        art.setSku("101285");
-        art.setNombre("Bicicleta bimex");
-
-        var art1 = new DetalleArticuloResponseData();
-        art1.setSku("101286");
-        art1.setNombre("Bicicleta bimex II");
-
-        var articuloList = List.of(art, art1);
-
-        var response = ConsultarResponse.build(poliza
-        , emp, articuloList);
-
-
-        return ResponseEntity.ok(response);*/
     }
 
 }

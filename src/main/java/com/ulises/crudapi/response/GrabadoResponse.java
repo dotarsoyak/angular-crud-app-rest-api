@@ -2,14 +2,13 @@ package com.ulises.crudapi.response;
 
 import com.ulises.crudapi.response.data.DetalleArticuloResponseData;
 import com.ulises.crudapi.response.data.EmpleadoResponseData;
-import com.ulises.crudapi.response.data.PolizaEmpleadoResponseData;
 import com.ulises.crudapi.response.data.PolizaResponseData;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class ConsultarResponse {
+public class GrabadoResponse {
     public static Map<String, Object> build(
             PolizaResponseData poliza
             , EmpleadoResponseData empleadoData, List<DetalleArticuloResponseData> articuloList
@@ -34,21 +33,4 @@ public class ConsultarResponse {
 
         return response;
     }
-
-    public static Map<String, Object> buildPolizaList(
-            List<PolizaEmpleadoResponseData> polizaResponseDataList
-    ){
-        Map<String, String> statusMeta = new HashMap<>();
-        statusMeta.put("Status", "OK");
-        //polizaMeta
-        Map<String, Object> data = new HashMap<>();
-        data.put("Poliza", polizaResponseDataList);
-
-        Map<String, Object> response = new HashMap<String, Object>();
-        response.put("Meta", statusMeta);
-        response.put("Data", data);
-
-        return response;
-    }
-
 }

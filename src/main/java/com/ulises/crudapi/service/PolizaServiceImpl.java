@@ -9,8 +9,10 @@ import com.ulises.crudapi.model.PolizaRequest;
 import com.ulises.crudapi.repository.EmpleadoRepository;
 import com.ulises.crudapi.repository.PolizaRepository;
 import com.ulises.crudapi.response.ConsultarResponse;
+import com.ulises.crudapi.response.GrabadoResponse;
 import com.ulises.crudapi.response.data.DetalleArticuloResponseData;
 import com.ulises.crudapi.response.data.EmpleadoResponseData;
+import com.ulises.crudapi.response.data.PolizaEmpleadoResponseData;
 import com.ulises.crudapi.response.data.PolizaResponseData;
 import jakarta.persistence.EntityManager;
 import jakarta.transaction.Transactional;
@@ -40,27 +42,47 @@ public class PolizaServiceImpl implements PolizaService {
     private EmpleadoRepository empleadoRepository;
 
     @Override
+    public Map<String, Object> consultarPolizaPorIdEmpleado(Long idEmpleado) {
+        var polizaEmpleadoList = this.polizaRepository.findByIdEmpleado(idEmpleado);
+        var polizaResponseDataList = new ArrayList<PolizaEmpleadoResponseData>();
+
+        //Armar polizaResponseDataList
+        polizaEmpleadoList
+                .stream().forEach(
+                        (Poliza p) -> {
+                            var polizaResponseData =
+                                    PolizaEmpleadoResponseData.build(p.getIdPoliza()
+                                            , p.getSkus().stream().count(), p.getFecha());
+                            polizaResponseDataList.add(polizaResponseData);
+                        }
+                );
+
+        //crear objeto ConsultaResponse
+        var consultaResponse =
+                ConsultarResponse.buildPolizaList(
+                        polizaResponseDataList
+                );
+
+        return consultaResponse;
+
+    }
+
+    @Override
     public Map<String, Object> consultarPolizaById(Long id) {
-        //------------
-        //obtener poliza
         var poliza = this.polizaRepository.findById(id).get();
-
-        //obtener Empleado
         var empleado = this.empleadoRepository.findById(poliza.getIdEmpleado()).get();
-
-        //polizaResponseData
         var polizaResponseData = new PolizaResponseData();
+
         polizaResponseData.setIdPoliza(id);
         polizaResponseData.setCantidad(poliza.getSkus().stream().count());
 
-        //empleadoData
         var empleadoResponseData = new EmpleadoResponseData();
         empleadoResponseData.setNombre(empleado.getNombre().trim());
         empleadoResponseData.setApellido(empleado.getApellido().trim());
 
-        //detalleArticuloResponseData
         var detalleArticuloResponseData = new DetalleArticuloResponseData();
-        //consultar los skus
+
+        //obtener los skus de la base de datos
         //TODO: Refactorizar esta parte para consumirla obtener una lista como resultado
         //TODO: parametrizar esta consulta
         var detallesSkus = jdbcTemplate
@@ -69,10 +91,8 @@ public class PolizaServiceImpl implements PolizaService {
         //TODO: Asignar al DetalleArticuloResponseList, la responsabilidad de mapear este codigo.
         //o en su lugar, crear un helper de DetalleArticuloResponseList para que haga el mapeo
         var detalleArticuloList = new ArrayList<DetalleArticuloModel>();
-                detallesSkus.forEach(
-                (s) -> {
-                    detalleArticuloList.add(
-                            DetalleArticuloModel.build((String)s.get("sku").toString().trim()
+                detallesSkus.forEach((s) -> {
+                    detalleArticuloList.add(DetalleArticuloModel.build((String)s.get("sku").toString().trim()
                             ,(String)s.get("nombre").toString().trim()));
                 }
         );
@@ -123,13 +143,15 @@ public class PolizaServiceImpl implements PolizaService {
 
     @Override
     @Transactional
-    public Poliza save(PolizaRequest polizaRequest) {
+    public Map<String, Object> save(PolizaRequest polizaRequest) {
         Poliza poliza = PolizaRequest.map(polizaRequest);
         poliza.setFechaActual();
 
         em.persist(poliza);
         em.merge(poliza);
-        poliza.setSkus(new ArrayList<PolizaDetalle>());
+        poliza.setSkus(new ArrayList<PolizaDetalle>());//reiniciamos su lista de skus
+
+        polizaRequest.setIdPoliza(poliza.getIdPoliza()); //seteamos la poliza id para recuperarla en el controller
 
         polizaRequest.getDetalle().forEach(
                 (polizaDetalleRequest) -> {
@@ -145,8 +167,43 @@ public class PolizaServiceImpl implements PolizaService {
         em.flush();
         em.close();
 
-        return poliza;
+
+        //Armar objeto de respuesta
+        var polizaResponseData = new PolizaResponseData();
+
+        polizaResponseData.setIdPoliza(poliza.getIdPoliza());
+        polizaResponseData.setCantidad(polizaRequest.getDetalle().stream().count());
+
+        var empleado = this.empleadoRepository.findById(poliza.getIdEmpleado()).get();
+        var empleadoResponseData = new EmpleadoResponseData();
+        empleadoResponseData.setNombre(empleado.getNombre().trim());
+        empleadoResponseData.setApellido(empleado.getApellido().trim());
+
+        var detallesSkus = jdbcTemplate
+                .queryForList("select sku, nombre from obtenerDetalleArticulosPorIdPoliza("+poliza.getIdPoliza()+")");
+
+        //TODO: Refactorizar esta parte: relacionar PolizaDetalle con Inventario
+        //para poder obtener de polizaDetalle la relacion de inventario.
+        var detalleArticuloList = new ArrayList<DetalleArticuloModel>();
+        detallesSkus.forEach((s) -> {
+                    detalleArticuloList.add(DetalleArticuloModel.build((String)s.get("sku").toString().trim()
+                            ,(String)s.get("nombre").toString().trim()));
+                }
+        );
+        var detalleArticuloResponseDataList =
+                detalleArticuloList
+                        .stream()
+                        .map((DetalleArticuloModel det) -> {
+                            return DetalleArticuloResponseData.build(det.getSku(), det.getNombre());
+                        }).toList();
+
+        return GrabadoResponse.build(
+                polizaResponseData
+                ,empleadoResponseData
+                ,detalleArticuloResponseDataList
+        );
     }
+
 
 
 }
