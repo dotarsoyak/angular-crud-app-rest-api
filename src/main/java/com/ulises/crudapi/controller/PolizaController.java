@@ -1,38 +1,22 @@
 package com.ulises.crudapi.controller;
 
-import com.ulises.crudapi.entity.Inventario;
-import com.ulises.crudapi.entity.Poliza;
-import com.ulises.crudapi.model.DetalleArticuloModel;
 import com.ulises.crudapi.model.EmpleadoActualizaRequest;
 import com.ulises.crudapi.model.PolizaRequest;
 import com.ulises.crudapi.repository.EmpleadoRepository;
-import com.ulises.crudapi.repository.PolizaDetalleRepository;
 import com.ulises.crudapi.repository.PolizaRepository;
-import com.ulises.crudapi.response.ConsultarResponse;
 import com.ulises.crudapi.response.FailResponse;
 import com.ulises.crudapi.response.OkResponse;
-import com.ulises.crudapi.response.data.DetalleArticuloResponseData;
-import com.ulises.crudapi.response.data.EmpleadoResponseData;
-import com.ulises.crudapi.response.data.PolizaResponseData;
 import com.ulises.crudapi.service.PolizaService;
 import jakarta.persistence.EntityManager;
-import jakarta.persistence.ParameterMode;
-import jakarta.persistence.Query;
-import jakarta.persistence.StoredProcedureQuery;
-import org.apache.coyote.Response;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.core.simple.SimpleJdbcCall;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import java.net.URI;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 @RestController
