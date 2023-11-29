@@ -5,8 +5,10 @@ import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import com.ulises.crudapi.security.JWTTokenProvider;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -20,10 +22,13 @@ import io.jsonwebtoken.SignatureAlgorithm;
 @RestController
 public class UserController {
 
+    @Autowired
+    private JWTTokenProvider tokenProvider;
+
     @PostMapping("/user")
     public User login(@RequestParam("user") String username, @RequestParam("password") String pwd) {
 
-        String token = getJWTToken(username);
+        String token = tokenProvider.getJWTToken(username);
         User user = new User();
         user.setUser(username);
         user.setToken(token);
@@ -31,28 +36,8 @@ public class UserController {
 
     }
 
-    private String getJWTToken(String username) {
-        String secretKey = "404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970";
-        List<GrantedAuthority> grantedAuthorities = AuthorityUtils
-                .commaSeparatedStringToAuthorityList("ROLE_USER");
 
-        String token = Jwts
-                .builder()
-                .claim("authorities",
-                        grantedAuthorities.stream()
-                                .map(GrantedAuthority::getAuthority)
-                                .collect(Collectors.toList()))
-                .setIssuedAt(new Date(System.currentTimeMillis()))
-                .setExpiration(new Date(System.currentTimeMillis() + (60000 * 60)))//1 hora
-                .signWith(getSignInKey(secretKey), SignatureAlgorithm.HS256)
-                .compact();
 
-        return "Bearer " + token;
-    }
 
-    private Key getSignInKey(String secretKey) {
-        byte[] keyBytes = Decoders.BASE64.decode(secretKey);
-        return Keys.hmacShaKeyFor(keyBytes);
-    }
 }
 

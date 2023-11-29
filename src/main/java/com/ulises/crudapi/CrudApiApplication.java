@@ -1,8 +1,6 @@
 package com.ulises.crudapi;
 
-import com.ulises.crudapi.entity.Inventario;
-import com.ulises.crudapi.service.InventarioService;
-import com.ulises.crudapi.service.InventarioServiceImpl;
+import com.ulises.crudapi.security.JWTTokenProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,6 +8,12 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.jdbc.core.JdbcTemplate;
+
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Properties;
 
 @SpringBootApplication
 public class CrudApiApplication implements CommandLineRunner {

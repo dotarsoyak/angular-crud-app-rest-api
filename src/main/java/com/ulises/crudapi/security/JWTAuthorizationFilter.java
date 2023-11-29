@@ -7,6 +7,7 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -16,12 +17,18 @@ import java.io.IOException;
 import java.security.Key;
 import java.util.List;
 import java.util.stream.Collectors;
+import com.ulises.crudapi.helper.PropertyHelper;
 
 public class JWTAuthorizationFilter extends OncePerRequestFilter {
 
 	private final String HEADER = "Authorization";
 	private final String PREFIX = "Bearer ";
-	private final String SECRET = "404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970";
+
+	private String SECRET;
+
+	public JWTAuthorizationFilter() throws IOException {
+		SECRET = PropertyHelper.getProperty("jwt.secretKey");
+	}
 
 	@Override
 	protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain) throws ServletException, IOException {
