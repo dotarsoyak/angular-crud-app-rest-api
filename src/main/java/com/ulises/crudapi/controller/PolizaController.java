@@ -19,6 +19,8 @@ import org.springframework.web.util.UriComponentsBuilder;
 import java.net.URI;
 import java.util.Map;
 
+import static com.ulises.crudapi.messages.PolizaMessage.*;
+
 @RestController
 @RequestMapping(path = "/api/v1/poliza")
 public class PolizaController {
@@ -40,7 +42,7 @@ public class PolizaController {
             , UriComponentsBuilder ucb) {
 
         try{
-            LOG.info("Objeto PolizaRequest: {}", polizaRequest);
+            LOG.info("Inicia grabado de poliza: {}.", polizaRequest);
             var grabadoResponse = this.polizaService.save(polizaRequest);
 
             URI location = ucb.path("/poliza/add/{id}")
@@ -49,7 +51,10 @@ public class PolizaController {
 
             return ResponseEntity.ok(grabadoResponse);
         }catch(Exception ex){
-            return ResponseEntity.ok(FailResponse.build("Ha ocurrido un error en los grabado de póliza."));
+            LOG.error("Ha ocurrido un error al intentar grabar la póliza", ex.toString());
+            return ResponseEntity.ok(FailResponse.build(ERROR_GRABADO_POLIZA));
+        }finally{
+            LOG.info("Termina grabado de póliza.");
         }
 
     }
@@ -61,8 +66,19 @@ public class PolizaController {
             , @PathVariable("nombreEmpleado") String nombreEmpleado
     ){
         try{
+            LOG.info("Inicia actualización de póliza {} por idEmpleado: {}.", idPoliza, idEmpleado);
             var polizaToUpdate =
                     this.polizaRepository.findById(Long.parseLong(idPoliza));
+
+            if(!this.polizaRepository.existsById(Long.parseLong(idPoliza))){
+                LOG.error("La póliza: {} no existe.", idPoliza);
+                return ResponseEntity.ok(FailResponse.build(ERROR_ACTUALIZAR_POLIZA));
+            }
+
+            if(!this.empleadoRepository.existsById(Long.parseLong(idEmpleado))){
+                LOG.error("El empleado: {} no existe.", idPoliza);
+                return ResponseEntity.ok(FailResponse.build(ERROR_ACTUALIZAR_POLIZA));
+            }
 
             if(polizaToUpdate.isPresent()){
                 var empleadoActualizaRequest =
@@ -74,22 +90,30 @@ public class PolizaController {
             }
 
             return ResponseEntity.ok(OkResponse.build("Se actualizó correctamente la póliza " + idPoliza));
-
         }catch(Exception e){
-            return ResponseEntity.ok(FailResponse.build("Ha ocurrido un error al intentar actualizar la póliza."));
+            LOG.error("Ha ocurrido un error al intentar actualizar la póliza", e.toString());
+            return ResponseEntity.ok(FailResponse.build(ERROR_ACTUALIZAR_POLIZA));
+        }finally{
+            LOG.info("Termina actualización de póliza por idEmpleado.");
         }
     }
 
     @GetMapping("/delete/{id}")
     public ResponseEntity<Map<String, Object>> delete(@PathVariable("id") Long id){
         try{
+            LOG.info("Inicia eliminación de póliza: {}.", id);
             if(this.polizaRepository.existsById(id)){
                 this.polizaService.cancelarPoliza(id);
+                return ResponseEntity.ok(OkResponse.build("Se eliminó correctamente la poliza: " + id));
             }
 
-            return ResponseEntity.ok(OkResponse.build("Se eliminó correctamente la poliza: " + id));
+            LOG.error("La póliza: {} no existe.", id);
+            return ResponseEntity.ok(FailResponse.build(ERROR_ELIMINAR_POLIZA));
         }catch(Exception ex){
-            return ResponseEntity.ok(FailResponse.build("Ha ocurrido un error al intentar obtener la póliza."));
+            LOG.error("Ocurrió un error al eliminar la póliza: " + ex.toString());
+            return ResponseEntity.ok(FailResponse.build(ERROR_ELIMINAR_POLIZA));
+        }finally {
+            LOG.info("Termina eliminación de póliza.");
         }
     }
 
@@ -97,39 +121,48 @@ public class PolizaController {
     @GetMapping("/{id}")
     public ResponseEntity<Map<String, Object>> getById(@PathVariable("id") Long id){
         try{
+            LOG.info("Inicia consulta de póliza por idPoliza: {}.", id);
             if(this.polizaRepository.existsById(id)){
-                //logica para obtener: Poliza, Empleado y DetalleArticulo
                 var response = this.polizaService.consultarPolizaById(id);
                 return ResponseEntity.ok(response);
             }
-            return ResponseEntity.ok(FailResponse.build("Ha ocurrido un error al consultar la póliza."));
 
+            LOG.error("La póliza: {} no existe.", id);
+            return ResponseEntity.ok(FailResponse.build(ERROR_CONSULTAR_POLIZA));
         }catch(Exception ex){
-            return ResponseEntity.ok(FailResponse.build("Ha ocurrido un error al consultar la póliza."));
+            LOG.error(ERROR_CONSULTAR_POLIZA + " " + ex.toString());
+            return ResponseEntity.ok(FailResponse.build(ERROR_CONSULTAR_POLIZA));
+        }finally {
+            LOG.info("Termina consulta de póliza por idPoliza");
         }
     }
 
     @GetMapping("/empleado/{idEmpleado}")
     public ResponseEntity<Map<String ,Object>> getPolizaByIdEmpleado(@PathVariable("idEmpleado") Long idEmpleado){
         try{
+            LOG.info("Inicia consulta de póliza por idEmpleado: {}", idEmpleado);
             if(this.empleadoRepository.existsById(idEmpleado)){
                 var response = this.polizaService.consultarPolizaPorIdEmpleado(idEmpleado);
 
                 return ResponseEntity.ok(response);
             }
         }catch(Exception ex){
-            return ResponseEntity.ok(FailResponse.build("Ha ocurrido un error al consultar la póliza"));
+            LOG.error(ERROR_CONSULTAR_POLIZA + " " + ex.toString());
+            return ResponseEntity.ok(FailResponse.build(ERROR_CONSULTAR_POLIZA));
+        }finally {
+            LOG.info("Termina consulta de póliza por idEmpleado");
         }
 
-        return ResponseEntity.ok(FailResponse.build("Ha ocurrido un error al consultar la póliza"));
+        return ResponseEntity.ok(FailResponse.build(ERROR_CONSULTAR_POLIZA));
     }
 
     @GetMapping("/hi")
     public void hello(){
-        var detallesSkus =
-                jdbcTemplate.queryForList("select * from obtenerDetalleArticulosPorIdPoliza(1)");
+        LOG.info("Generando log");
+        //var detallesSkus =
+          //      jdbcTemplate.queryForList("select * from obtenerDetalleArticulosPorIdPoliza(1)");
 
-        System.out.println();
+        //System.out.println();
 
     }
 

@@ -3,6 +3,8 @@ package com.ulises.crudapi;
 import com.ulises.crudapi.entity.Inventario;
 import com.ulises.crudapi.service.InventarioService;
 import com.ulises.crudapi.service.InventarioServiceImpl;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
@@ -11,6 +13,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 
 @SpringBootApplication
 public class CrudApiApplication implements CommandLineRunner {
+	private static final Logger LOG = LoggerFactory.getLogger(CrudApiApplication.class);
 
 	@Autowired
 	JdbcTemplate jdbcTemplate;
@@ -23,7 +26,8 @@ public class CrudApiApplication implements CommandLineRunner {
 	public void run(String... args) throws Exception {
 	String insertInventario = """
 				INSERT INTO inventario(sku,nombre,cantidad) VALUES('101285', 'Bicicleta Bimex', 5);
-				INSERT INTO inventario(sku,nombre,cantidad) VALUES('101286', 'Bicicleta Bimex', 3);
+				INSERT INTO inventario(sku,nombre,cantidad) VALUES('101286', 'Llanta R15-205/70', 3);
+				INSERT INTO inventario(sku,nombre,cantidad) VALUES('224195', 'Trapeador', 3);
 				INSERT INTO empleado(nombre,apellido,puesto) VALUES('Ulises','Trujillo','Arquitecto');
 				""";
 

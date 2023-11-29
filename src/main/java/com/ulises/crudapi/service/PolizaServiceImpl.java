@@ -15,6 +15,7 @@ import com.ulises.crudapi.response.data.EmpleadoResponseData;
 import com.ulises.crudapi.response.data.PolizaEmpleadoResponseData;
 import com.ulises.crudapi.response.data.PolizaResponseData;
 import jakarta.persistence.EntityManager;
+import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;

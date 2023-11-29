@@ -43,7 +43,7 @@ public class UserController {
                                 .map(GrantedAuthority::getAuthority)
                                 .collect(Collectors.toList()))
                 .setIssuedAt(new Date(System.currentTimeMillis()))
-                .setExpiration(new Date(System.currentTimeMillis() + 600000))
+                .setExpiration(new Date(System.currentTimeMillis() + (60000 * 60)))//1 hora
                 .signWith(getSignInKey(secretKey), SignatureAlgorithm.HS256)
                 .compact();
 

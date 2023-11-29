@@ -19,7 +19,7 @@ class WebSecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(
                         req ->
-                            req.requestMatchers("/user")
+                            req.requestMatchers("/user", "/api/v1/poliza/hi")
                                 .permitAll()
                                 .anyRequest()
                                 .authenticated()
