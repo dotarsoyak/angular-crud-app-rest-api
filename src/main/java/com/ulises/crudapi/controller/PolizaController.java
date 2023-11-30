@@ -51,7 +51,7 @@ public class PolizaController {
 
             return ResponseEntity.ok(grabadoResponse);
         }catch(Exception ex){
-            LOG.error("Ha ocurrido un error al intentar grabar la póliza", ex.toString());
+            LOG.error("Ha ocurrido un error al intentar grabar la póliza {}", ex.toString());
             return ResponseEntity.ok(FailResponse.build(ERROR_GRABADO_POLIZA));
         }finally{
             LOG.info("Termina grabado de póliza.");
@@ -91,7 +91,7 @@ public class PolizaController {
 
             return ResponseEntity.ok(OkResponse.build("Se actualizó correctamente la póliza " + idPoliza));
         }catch(Exception e){
-            LOG.error("Ha ocurrido un error al intentar actualizar la póliza", e.toString());
+            LOG.error("Ha ocurrido un error al intentar actualizar la póliza {}", e.toString());
             return ResponseEntity.ok(FailResponse.build(ERROR_ACTUALIZAR_POLIZA));
         }finally{
             LOG.info("Termina actualización de póliza por idEmpleado.");

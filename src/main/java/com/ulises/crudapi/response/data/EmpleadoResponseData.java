@@ -9,9 +9,14 @@ import lombok.ToString;
 @ToString
 public class EmpleadoResponseData {
     private String nombre;
-    private String Apellido;
+    private String apellido;
 
     public EmpleadoResponseData(){}
+
+    public EmpleadoResponseData(String nombre, String apellido){
+        this.setNombre(nombre);
+        this.setApellido(apellido);
+    }
 
 
 }

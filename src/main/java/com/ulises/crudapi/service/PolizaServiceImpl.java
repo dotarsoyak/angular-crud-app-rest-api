@@ -164,7 +164,7 @@ public class PolizaServiceImpl implements PolizaService {
                 }
         );
 
-        em.persist(poliza);
+        //em.persist(poliza);
         em.flush();
         em.close();
 
