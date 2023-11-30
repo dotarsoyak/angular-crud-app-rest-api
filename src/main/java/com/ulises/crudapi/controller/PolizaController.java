@@ -156,14 +156,4 @@ public class PolizaController {
         return ResponseEntity.ok(FailResponse.build(ERROR_CONSULTAR_POLIZA));
     }
 
-    @GetMapping("/hi")
-    public void hello(){
-        LOG.info("Generando log");
-        //var detallesSkus =
-          //      jdbcTemplate.queryForList("select * from obtenerDetalleArticulosPorIdPoliza(1)");
-
-        //System.out.println();
-
-    }
-
 }

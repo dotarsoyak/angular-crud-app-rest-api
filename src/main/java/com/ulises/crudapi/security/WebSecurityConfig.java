@@ -11,13 +11,26 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @EnableWebSecurity
 @Configuration
 class WebSecurityConfig {
+
+    private static final String[] WHITE_LIST_URL = {
+            "/v2/api-docs",
+            "/v3/api-docs",
+            "/v3/api-docs/**",
+            "/swagger-resources",
+            "/swagger-resources/**",
+            "/swagger-ui/**",
+            "/webjars/**",
+            "/swagger-ui.html",
+            "/user", "/api/v1/poliza/hi"};
+
     @Bean
     protected SecurityFilterChain configure(HttpSecurity http) throws Exception {
+
         http
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(
                         req ->
-                            req.requestMatchers("/user", "/api/v1/poliza/hi")
+                            req.requestMatchers(WHITE_LIST_URL)
                                 .permitAll()
                                 .anyRequest()
                                 .authenticated()
